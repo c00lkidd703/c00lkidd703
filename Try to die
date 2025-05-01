@@ -1,60 +1,94 @@
-local a=game.Players.LocalPlayer
-local b=game:GetService("RunService")
-local c,d=pcall(function()return loadstring(game:HttpGet("https://raw.githubusercontent.com/liebertsx/Tora-Library/main/src/librarynew",true))()end)
-if not c or not d then return end
-local e=d:CreateWindow("Try to Die")
-e:AddButton({text="[Skip Stage]",callback=function()
-local f=Instance.new("ScreenGui",a:WaitForChild("PlayerGui"))
-f.Name="TeleportHub"
-local g=Instance.new("Frame",f)
-g.Size=UDim2.new(0.6,0,0.4,0)
-g.Position=UDim2.new(0.2,0,0.3,0)
-g.BackgroundColor3=Color3.fromRGB(0,0,0)
-g.BorderSizePixel=5
-g.BorderColor3=Color3.fromRGB(255,0,0)
-local h=Instance.new("TextLabel",g)
-h.Size=UDim2.new(1,-20,0.7,0)
-h.Position=UDim2.new(0,10,0,10)
-h.TextColor3=Color3.fromRGB(0,0,0)
-h.BackgroundTransparency=1
-h.Font=Enum.Font.Code
-h.TextScaled=true
-h.TextWrapped=true
-h.TextXAlignment=Enum.TextXAlignment.Left
-h.TextYAlignment=Enum.TextYAlignment.Top
-local i=Instance.new("TextLabel",g)
-i.Size=UDim2.new(1,-20,0.2,0)
-i.Position=UDim2.new(0,10,0.75,0)
-i.TextColor3=Color3.fromRGB(0,0,0)
-i.BackgroundTransparency=1
-i.Font=Enum.Font.Code
-i.TextScaled=true
-i.TextXAlignment=Enum.TextXAlignment.Left
-i.TextYAlignment=Enum.TextYAlignment.Top
-local function j(k)h.Text=table.concat(k,"\n")end
-j({"Please Wait A Moment...","Loading Dead..."," ","Please Wait 10 Seconds To Dead"})
-local function l()
-local m=tick()
-local n=math.sin(m*2)*0.5+0.5
-local o=math.sin(m*2+math.pi/2)*0.5+0.5
-local p=math.sin(m*2+math.pi)*0.5+0.5
-return Color3.fromRGB(math.floor(n*255),math.floor(o*255),math.floor(p*255))end
-local function q()
-local r=l()
-g.BorderColor3=r
-h.TextColor3=r
-i.TextColor3=r
+local _0x32d3 = game.Players.LocalPlayer
+local _0x56d9 = game:GetService("RunService")
+
+if game.PlaceId ~= 5901548022 then
+    _0x32d3:Kick("Script not supported on this game.")
+    return
 end
-local s=10
-coroutine.wrap(function()
-for t=s,0,-1 do
-i.Text="Dead Seconds "..t.."..."
-q()
-wait(1)
+
+local _0x15d0, _0x8c9e = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/liebertsx/Tora-Library/main/src/librarynew", true))()
+end)
+
+if not _0x15d0 or not _0x8c9e then
+    return
 end
-f:Destroy()
-if a.Character and a.Character:FindFirstChild("HumanoidRootPart") then
-a.Character:MoveTo(Vector3.new(0,2,-216))end end)()end})
-e:AddLabel({text="Credits: SBDP",type="label"})
-d:Init()
-                
+
+local _0x8a3d = _0x8c9e:CreateWindow("Try to Die")
+
+_0x8a3d:AddButton({
+    text = "[Skip Stage]",
+    callback = function()
+        local _0x4a91 = Instance.new("ScreenGui", _0x32d3:WaitForChild("PlayerGui"))
+        _0x4a91.Name = "TeleportHub"
+
+        local _0x1d30 = Instance.new("Frame", _0x4a91)
+        _0x1d30.Size = UDim2.new(0.6, 0, 0.4, 0)
+        _0x1d30.Position = UDim2.new(0.2, 0, 0.3, 0)
+        _0x1d30.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        _0x1d30.BorderSizePixel = 5
+        _0x1d30.BorderColor3 = Color3.fromRGB(255, 0, 0)
+
+        local _0x5602 = Instance.new("TextLabel", _0x1d30)
+        _0x5602.Size = UDim2.new(1, -20, 0.7, 0)
+        _0x5602.Position = UDim2.new(0, 10, 0, 10)
+        _0x5602.TextColor3 = Color3.fromRGB(0, 0, 0)
+        _0x5602.BackgroundTransparency = 1
+        _0x5602.Font = Enum.Font.Code
+        _0x5602.TextScaled = true
+        _0x5602.TextWrapped = true
+        _0x5602.TextXAlignment = Enum.TextXAlignment.Left
+        _0x5602.TextYAlignment = Enum.TextYAlignment.Top
+
+        local _0x41c6 = Instance.new("TextLabel", _0x1d30)
+        _0x41c6.Size = UDim2.new(1, -20, 0.2, 0)
+        _0x41c6.Position = UDim2.new(0, 10, 0.75, 0)
+        _0x41c6.TextColor3 = Color3.fromRGB(0, 0, 0)
+        _0x41c6.BackgroundTransparency = 1
+        _0x41c6.Font = Enum.Font.Code
+        _0x41c6.TextScaled = true
+        _0x41c6.TextXAlignment = Enum.TextXAlignment.Left
+        _0x41c6.TextYAlignment = Enum.TextYAlignment.Top
+
+        local function _0x3d9b(_0x28a5)
+            _0x5602.Text = table.concat(_0x28a5, "\n")
+        end
+
+        _0x3d9b({
+            "Please Wait A Moment...",
+            "Loading Dead...",
+            " ",
+            "Please Wait 10 Seconds To Dead"
+        })
+
+        local function _0x2f59()
+            local _0x4287 = tick()
+            local _0x3a7a = math.sin(_0x4287 * 2) * 0.5 + 0.5
+            local _0x3b9b = math.sin(_0x4287 * 2 + math.pi / 2) * 0.5 + 0.5
+            local _0x2f3a = math.sin(_0x4287 * 2 + math.pi) * 0.5 + 0.5
+            return Color3.fromRGB(math.floor(_0x3a7a * 255), math.floor(_0x3b9b * 255), math.floor(_0x2f3a * 255))
+        end
+
+        local function _0x167f()
+            local _0x5bc4 = _0x2f59()
+            _0x1d30.BorderColor3 = _0x5bc4
+            _0x5602.TextColor3 = _0x5bc4
+            _0x41c6.TextColor3 = _0x5bc4
+        end
+
+        local _0x3c4e = 10
+        coroutine.wrap(function()
+            for _0x1c57 = _0x3c4e, 0, -1 do
+                _0x41c6.Text = "Dead Seconds " .. _0x1c57 .. "..."
+                _0x167f()
+                wait(1)
+            end
+            _0x4a91:Destroy()
+            _0x32d3.Character:MoveTo(Vector3.new(0, 2, -216))
+        end)()
+    end
+})
+
+_0x8a3d:AddLabel({ text = "Credits: SBDP", type = "label" })
+
+_0x8c9e:Init()
