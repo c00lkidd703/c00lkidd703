@@ -1,0 +1,60 @@
+local a=game.Players.LocalPlayer
+local b=game:GetService("RunService")
+local c,d=pcall(function()return loadstring(game:HttpGet("https://raw.githubusercontent.com/liebertsx/Tora-Library/main/src/librarynew",true))()end)
+if not c or not d then return end
+local e=d:CreateWindow("Try to Die")
+e:AddButton({text="[Skip Stage]",callback=function()
+local f=Instance.new("ScreenGui",a:WaitForChild("PlayerGui"))
+f.Name="TeleportHub"
+local g=Instance.new("Frame",f)
+g.Size=UDim2.new(0.6,0,0.4,0)
+g.Position=UDim2.new(0.2,0,0.3,0)
+g.BackgroundColor3=Color3.fromRGB(0,0,0)
+g.BorderSizePixel=5
+g.BorderColor3=Color3.fromRGB(255,0,0)
+local h=Instance.new("TextLabel",g)
+h.Size=UDim2.new(1,-20,0.7,0)
+h.Position=UDim2.new(0,10,0,10)
+h.TextColor3=Color3.fromRGB(0,0,0)
+h.BackgroundTransparency=1
+h.Font=Enum.Font.Code
+h.TextScaled=true
+h.TextWrapped=true
+h.TextXAlignment=Enum.TextXAlignment.Left
+h.TextYAlignment=Enum.TextYAlignment.Top
+local i=Instance.new("TextLabel",g)
+i.Size=UDim2.new(1,-20,0.2,0)
+i.Position=UDim2.new(0,10,0.75,0)
+i.TextColor3=Color3.fromRGB(0,0,0)
+i.BackgroundTransparency=1
+i.Font=Enum.Font.Code
+i.TextScaled=true
+i.TextXAlignment=Enum.TextXAlignment.Left
+i.TextYAlignment=Enum.TextYAlignment.Top
+local function j(k)h.Text=table.concat(k,"\n")end
+j({"Please Wait A Moment...","Loading Dead..."," ","Please Wait 10 Seconds To Dead"})
+local function l()
+local m=tick()
+local n=math.sin(m*2)*0.5+0.5
+local o=math.sin(m*2+math.pi/2)*0.5+0.5
+local p=math.sin(m*2+math.pi)*0.5+0.5
+return Color3.fromRGB(math.floor(n*255),math.floor(o*255),math.floor(p*255))end
+local function q()
+local r=l()
+g.BorderColor3=r
+h.TextColor3=r
+i.TextColor3=r
+end
+local s=10
+coroutine.wrap(function()
+for t=s,0,-1 do
+i.Text="Dead Seconds "..t.."..."
+q()
+wait(1)
+end
+f:Destroy()
+if a.Character and a.Character:FindFirstChild("HumanoidRootPart") then
+a.Character:MoveTo(Vector3.new(0,2,-216))end end)()end})
+e:AddLabel({text="Credits: SBDP",type="label"})
+d:Init()
+                
