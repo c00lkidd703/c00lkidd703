@@ -1,0 +1,378 @@
+-- Service
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService") -- For smooth hover effects
+
+-- Local Player
+local localPlayer = Players.LocalPlayer
+if not localPlayer then
+    Players.LocalPlayerAdded:Wait()
+    localPlayer = Players.LocalPlayer
+end
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+-- Variables
+local selectedPlayer = nil
+local dropdownOpen = false
+
+-- GUI Creation & Styling
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGui"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- Ensures dropdown appears over other elements if needed
+
+-- Main container frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 220, 0, 200) -- Slightly wider for padding
+mainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 37, 40) -- Darker background
+mainFrame.BorderColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 1
+mainFrame.Active = true -- Allow interaction/dragging
+mainFrame.Draggable = true
+mainFrame.Visible = true -- Start visible
+mainFrame.ClipsDescendants = false -- Allow dropdown to potentially show outside bounds if needed (though contained)
+mainFrame.Parent = screenGui -- Parent MainFrame to ScreenGui
+
+local cornerMain = Instance.new("UICorner")
+cornerMain.CornerRadius = UDim.new(0, 8) -- Rounded corners
+cornerMain.Parent = mainFrame
+
+local paddingMain = Instance.new("UIPadding")
+paddingMain.PaddingTop = UDim.new(0, 5)
+paddingMain.PaddingBottom = UDim.new(0, 5)
+paddingMain.PaddingLeft = UDim.new(0, 8)
+paddingMain.PaddingRight = UDim.new(0, 8)
+paddingMain.Parent = mainFrame
+
+-- Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 5) -- Position respects padding
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.fromRGB(220, 220, 225)
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.TextSize = 18
+titleLabel.Text = "Player Teleporter"
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+-- Dropdown Button (displays selected player or prompt)
+local dropdownButton = Instance.new("TextButton")
+dropdownButton.Name = "DropdownButton"
+dropdownButton.Size = UDim2.new(1, 0, 0, 35) -- Slightly taller
+dropdownButton.Position = UDim2.new(0, 0, 0, 40) -- Position below title
+dropdownButton.BackgroundColor3 = Color3.fromRGB(55, 58, 64) -- Button color
+dropdownButton.BorderColor3 = Color3.fromRGB(80, 80, 85)
+dropdownButton.BorderSizePixel = 0 -- Cleaner look
+dropdownButton.TextColor3 = Color3.fromRGB(210, 210, 215)
+dropdownButton.Font = Enum.Font.SourceSansSemibold -- CORRECTED Font Enum
+dropdownButton.TextSize = 16
+dropdownButton.Text = "Select Player..."
+dropdownButton.AutoButtonColor = false -- Disable default color change on click
+dropdownButton.Parent = mainFrame
+
+local cornerDropdownBtn = Instance.new("UICorner")
+cornerDropdownBtn.CornerRadius = UDim.new(0, 6)
+cornerDropdownBtn.Parent = dropdownButton
+
+-- Scrolling Frame (the actual dropdown list)
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Name = "PlayerListFrame"
+scrollingFrame.Size = UDim2.new(1, 0, 0, 150) -- Same width as button container
+scrollingFrame.Position = UDim2.new(0, 0, 0, 75) -- Position below the dropdown button
+scrollingFrame.BackgroundColor3 = Color3.fromRGB(50, 53, 59) -- Slightly different bg
+scrollingFrame.BorderColor3 = Color3.fromRGB(80, 80, 85)
+scrollingFrame.BorderSizePixel = 1
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Updated by list layout
+scrollingFrame.ScrollBarThickness = 8
+scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 105)
+scrollingFrame.Visible = false -- Start hidden
+scrollingFrame.ClipsDescendants = true
+scrollingFrame.ZIndex = 2 -- Ensure it draws over elements below it within the frame
+scrollingFrame.Parent = mainFrame
+
+local cornerScrolling = Instance.new("UICorner")
+cornerScrolling.CornerRadius = UDim.new(0, 6)
+cornerScrolling.Parent = scrollingFrame
+
+local listPadding = Instance.new("UIPadding") -- Padding *inside* the scrolling frame
+listPadding.PaddingTop = UDim.new(0, 4)
+listPadding.PaddingBottom = UDim.new(0, 4)
+listPadding.PaddingLeft = UDim.new(0, 4)
+listPadding.PaddingRight = UDim.new(0, 4)
+listPadding.Parent = scrollingFrame
+
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.Name = "ListLayout"
+uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiListLayout.Padding = UDim.new(0, 4) -- Spacing between player buttons
+uiListLayout.FillDirection = Enum.FillDirection.Vertical
+uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uiListLayout.Parent = scrollingFrame
+
+-- Teleport Button
+local teleportButton = Instance.new("TextButton")
+teleportButton.Name = "TeleportButton"
+teleportButton.Size = UDim2.new(0.6, 0, 0, 35)
+teleportButton.Position = UDim2.new(0.5, 0, 1, -45) -- Positioned near bottom, centered
+teleportButton.AnchorPoint = Vector2.new(0.5, 1) -- Anchor to bottom-center
+teleportButton.BackgroundColor3 = Color3.fromRGB(108, 117, 125) -- Default: Disabled grey
+teleportButton.BorderColor3 = Color3.fromRGB(80, 85, 90)
+teleportButton.BorderSizePixel = 0
+teleportButton.TextColor3 = Color3.fromRGB(230, 230, 235)
+teleportButton.Font = Enum.Font.SourceSansBold
+teleportButton.TextSize = 16
+teleportButton.Text = "Teleport"
+teleportButton.AutoButtonColor = false -- Manual state colors
+teleportButton.Parent = mainFrame
+
+local cornerTeleportBtn = Instance.new("UICorner")
+cornerTeleportBtn.CornerRadius = UDim.new(0, 6)
+cornerTeleportBtn.Parent = teleportButton
+
+-- Credits Label
+local creditsLabel = Instance.new("TextLabel")
+creditsLabel.Name = "CreditsLabel"
+creditsLabel.Size = UDim2.new(1, 0, 0, 15)
+creditsLabel.Position = UDim2.new(0, 0, 1, -5) -- Positioned at very bottom, respecting padding
+creditsLabel.AnchorPoint = Vector2.new(0, 1)
+creditsLabel.BackgroundTransparency = 1
+creditsLabel.TextColor3 = Color3.fromRGB(130, 130, 135)
+creditsLabel.Font = Enum.Font.SourceSansItalic
+creditsLabel.TextSize = 12
+creditsLabel.Text = "Made by: @SBDP_Script"
+creditsLabel.TextXAlignment = Enum.TextXAlignment.Center
+creditsLabel.Parent = mainFrame
+
+-- State Variables for Button Colors
+local teleportBtnEnabledColor = Color3.fromRGB(40, 167, 69) -- Green
+local teleportBtnDisabledColor = Color3.fromRGB(108, 117, 125) -- Grey
+local teleportBtnHoverColor = Color3.fromRGB(33, 136, 56) -- Darker Green
+local dropdownBtnColor = dropdownButton.BackgroundColor3
+local dropdownBtnHoverColor = Color3.fromRGB(65, 68, 74)
+local playerBtnColor = Color3.fromRGB(70, 73, 80)
+local playerBtnHoverColor = Color3.fromRGB(80, 83, 90)
+
+-- Functions
+
+local function setTeleportButtonState(enabled)
+    if enabled then
+        teleportButton.BackgroundColor3 = teleportBtnEnabledColor
+        teleportButton.AutoButtonColor = true -- Allow hover effect when enabled
+    else
+        teleportButton.BackgroundColor3 = teleportBtnDisabledColor
+        teleportButton.AutoButtonColor = false -- Disable hover effect when disabled
+    end
+end
+
+local function updatePlayerList()
+    -- Clear existing player buttons
+    for _, child in ipairs(scrollingFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+
+    local players = Players:GetPlayers()
+    local displayCount = 0
+    local totalHeight = 0
+
+    table.sort(players, function(a, b) -- Sort alphabetically
+        return a.Name < b.Name
+    end)
+
+    for i, player in ipairs(players) do
+        if player ~= localPlayer then
+            displayCount += 1
+            local playerButton = Instance.new("TextButton")
+            playerButton.Name = player.Name .. "_Button"
+            playerButton.Size = UDim2.new(1, -uiListLayout.Padding.Offset * 2, 0, 28) -- Full width minus padding, standard height
+            playerButton.BackgroundColor3 = playerBtnColor
+            playerButton.BorderSizePixel = 0
+            playerButton.TextColor3 = Color3.fromRGB(220, 220, 225)
+            playerButton.Font = Enum.Font.SourceSans
+            playerButton.TextSize = 14
+            playerButton.Text = player.DisplayName.." (@"..player.Name..")" -- Show display name and username
+            playerButton.LayoutOrder = i
+            playerButton.AutoButtonColor = false
+            playerButton.Parent = scrollingFrame
+
+            local cornerPlayerBtn = Instance.new("UICorner")
+            cornerPlayerBtn.CornerRadius = UDim.new(0, 4)
+            cornerPlayerBtn.Parent = playerButton
+
+            -- When a player name is clicked
+            playerButton.MouseButton1Click:Connect(function()
+                selectedPlayer = player
+                dropdownButton.Text = player.DisplayName -- Use DisplayName for button
+                scrollingFrame.Visible = false
+                dropdownOpen = false
+                setTeleportButtonState(true) -- Enable teleport button
+            end)
+
+            -- Hover effect for player buttons
+            playerButton.MouseEnter:Connect(function()
+                TweenService:Create(playerButton, TweenInfo.new(0.1), { BackgroundColor3 = playerBtnHoverColor }):Play()
+            end)
+            playerButton.MouseLeave:Connect(function()
+                 TweenService:Create(playerButton, TweenInfo.new(0.1), { BackgroundColor3 = playerBtnColor }):Play()
+            end)
+
+            totalHeight += playerButton.AbsoluteSize.Y + uiListLayout.Padding.Offset
+        end
+    end
+    -- Adjust CanvasSize based on content
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight - uiListLayout.Padding.Offset + (listPadding.PaddingTop.Offset * 2)) -- Account for top/bottom padding
+
+    -- Reset selection if selected player left while dropdown was closed
+    if selectedPlayer and not selectedPlayer:IsDescendantOf(Players) then
+         selectedPlayer = nil
+         dropdownButton.Text = "Select Player..."
+         setTeleportButtonState(false)
+    end
+end
+
+local function closeDropdown()
+    if dropdownOpen then
+        dropdownOpen = false
+        scrollingFrame.Visible = false
+    end
+end
+
+local function openDropdown()
+     if not dropdownOpen then
+        updatePlayerList() -- Refresh list when opening
+        dropdownOpen = true
+        scrollingFrame.Visible = true
+    end
+end
+
+local function toggleDropdown()
+    if dropdownOpen then
+        closeDropdown()
+    else
+        openDropdown()
+    end
+end
+
+local function teleportToSelectedPlayer()
+    if not selectedPlayer or not selectedPlayer:IsDescendantOf(Players) then
+        print("Teleport GUI: No valid player selected or player left.")
+        selectedPlayer = nil -- Clear selection if invalid
+        dropdownButton.Text = "Select Player..."
+        setTeleportButtonState(false)
+        -- Add visual feedback (e.g., brief button color change to red?) maybe later
+        return
+    end
+
+    local targetCharacter = selectedPlayer.Character
+    local localCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait() -- Ensure local character exists
+
+    if not localCharacter then
+        warn("Teleport GUI: Your character could not be found.")
+        return
+    end
+
+    local localHRP = localCharacter:FindFirstChild("HumanoidRootPart")
+    if not localHRP then
+        warn("Teleport GUI: Your HumanoidRootPart not found.")
+        return
+    end
+
+    if targetCharacter then
+        local targetHRP = targetCharacter:FindFirstChild("HumanoidRootPart")
+        if targetHRP then
+            print("Teleport GUI: Teleporting to", selectedPlayer.Name)
+            localHRP.CFrame = targetHRP.CFrame + Vector3.new(0, 3.5, 0) -- Slightly higher offset
+             -- Optional: Add success feedback (e.g., flash teleport button green)
+        else
+            warn("Teleport GUI: Target player's HumanoidRootPart not found (maybe loading?).")
+            -- Add visual feedback?
+        end
+    else
+        warn("Teleport GUI: Target player's character not found (maybe loading or reset?).")
+        -- Add visual feedback?
+    end
+end
+
+-- Event Connections
+
+-- Dropdown Toggle
+dropdownButton.MouseButton1Click:Connect(toggleDropdown)
+dropdownButton.MouseEnter:Connect(function()
+    TweenService:Create(dropdownButton, TweenInfo.new(0.1), { BackgroundColor3 = dropdownBtnHoverColor }):Play()
+end)
+dropdownButton.MouseLeave:Connect(function()
+     TweenService:Create(dropdownButton, TweenInfo.new(0.1), { BackgroundColor3 = dropdownBtnColor }):Play()
+end)
+
+-- Teleport Action
+teleportButton.MouseButton1Click:Connect(teleportToSelectedPlayer)
+teleportButton.MouseEnter:Connect(function()
+    if selectedPlayer then -- Only show hover if enabled
+        TweenService:Create(teleportButton, TweenInfo.new(0.1), { BackgroundColor3 = teleportBtnHoverColor }):Play()
+    end
+end)
+teleportButton.MouseLeave:Connect(function()
+     if selectedPlayer then -- Only revert if enabled
+         TweenService:Create(teleportButton, TweenInfo.new(0.1), { BackgroundColor3 = teleportBtnEnabledColor }):Play()
+     end
+end)
+
+-- Player List Updates
+Players.PlayerAdded:Connect(function(player)
+    if dropdownOpen then -- Only update if visible
+        updatePlayerList()
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    -- Update list if open
+    if dropdownOpen then
+        updatePlayerList()
+    end
+    -- Reset selection immediately if the removed player was selected
+    if player == selectedPlayer then
+        selectedPlayer = nil
+        dropdownButton.Text = "Select Player..."
+        setTeleportButtonState(false) -- Disable button
+        -- No need to call updatePlayerList again here if dropdown isn't open
+    end
+end)
+
+-- Close dropdown if clicking outside the main GUI frame
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if not dropdownOpen then return end -- Only act if dropdown is open
+    if gameProcessedEvent then return end -- Ignore clicks already handled by other GUI (like buttons inside the frame)
+
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        -- Check if the click was outside the mainFrame bounds + the scrollingFrame bounds (if visible)
+        local mousePos = input.Position
+        local mainFramePos = mainFrame.AbsolutePosition
+        local mainFrameSize = mainFrame.AbsoluteSize
+
+        local isOutsideMain = mousePos.X < mainFramePos.X or mousePos.X > mainFramePos.X + mainFrameSize.X or
+                              mousePos.Y < mainFramePos.Y or mousePos.Y > mainFramePos.Y + mainFrameSize.Y
+
+        local isOutsideScroll = true -- Assume outside scroll unless proven otherwise
+        if scrollingFrame.Visible then
+             local scrollFramePos = scrollingFrame.AbsolutePosition
+             local scrollFrameSize = scrollingFrame.AbsoluteSize
+             isOutsideScroll = mousePos.X < scrollFramePos.X or mousePos.X > scrollFramePos.X + scrollFrameSize.X or
+                               mousePos.Y < scrollFramePos.Y or mousePos.Y > scrollFramePos.Y + scrollFrameSize.Y
+        end
+
+
+        -- Close only if outside BOTH the main frame AND the scrolling frame (when visible)
+        if isOutsideMain and isOutsideScroll then
+            closeDropdown()
+        end
+    end
+end)
+
+-- Initial setup
+setTeleportButtonState(false) -- Start with teleport disabled
+screenGui.Parent = playerGui -- <<< CORRECTED PARENTING
